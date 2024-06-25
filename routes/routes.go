@@ -10,4 +10,5 @@ func RegisterRoutes(r *gin.Engine) {
 	r.POST("/users", controllers.CreateUser)
 	r.GET("/users/:id", controllers.GetUser)
 	r.GET("/users", controllers.GetUsersWithRoles)
+	r.GET("/helloWorld", controllers.Helloweb)
 }
