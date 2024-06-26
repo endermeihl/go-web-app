@@ -1,23 +1,43 @@
 package main
 
 import (
+	"go-web-app/config"
+	"go-web-app/logger"
+	"go-web-app/middlewares"
 	"go-web-app/routes"
+	"go-web-app/utils"
 
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
 func main() {
-	// Initialize configurations
-	//config.LoadConfig()
+	// 初始化配置
+	config.LoadConfig()
 
-	// Initialize MySQL and Redis connections
-	//utils.ConnectDatabase()
-	//utils.ConnectRedis()
+	// 初始化日志
+	logger.InitLogger()
+	defer logger.SyncLogger()
 
-	// Set up the router
-	r := gin.Default()
+	// 连接数据库
+	utils.ConnectDatabase()
+	utils.ConnectRedis()
+
+	// 初始化 Gin 引擎
+	r := gin.New()
+
+	// 使用中间件
+	r.Use(middlewares.EncryptionMiddleware())
+	r.Use(middlewares.AuthMiddleware())
+
+	// 添加恢复中间件
+	r.Use(gin.Recovery())
+
+	// 注册路由
 	routes.RegisterRoutes(r)
 
-	// Start the server
-	r.Run(":8080")
+	// 启动服务器
+	if err := r.Run(":8080"); err != nil {
+		logger.Logger.Fatal("Failed to start server", zap.Error(err))
+	}
 }
